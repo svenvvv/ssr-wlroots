@@ -21,6 +21,7 @@ option(WITH_JACK "Build with JACK support." TRUE)
 option(WITH_QT5 "Build with Qt5 (instead of Qt4)." FALSE)
 option(WITH_SIMPLESCREENRECORDER "Build the 'simplescreenrecorder' executable." TRUE)
 option(WITH_GLINJECT "Build the 'libssr-glinject' library. Required for OpenGL recording." TRUE)
+option(WITH_WAYLAND "Build with Wayland (wlroots) support." TRUE)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
@@ -58,6 +59,14 @@ if(WITH_GLINJECT)
 
 	add_subdirectory(glinject)
 
+endif()
+
+if(WITH_WAYLAND)
+    include(WaylandScanner)
+    find_package(WaylandProtocols REQUIRED)
+    wayland_generate_proto(${CMAKE_SOURCE_DIR}/proto/wlr-screencopy-unstable-v1.xml)
+    wayland_generate_proto(${WaylandProtocols_PKGDATADIR}/unstable/xdg-output/xdg-output-unstable-v1.xml)
+    wayland_proto_library(wayland-proto wlr-screencopy-unstable-v1 xdg-output-unstable-v1)
 endif()
 
 if(WITH_SIMPLESCREENRECORDER)

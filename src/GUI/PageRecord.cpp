@@ -34,6 +34,9 @@ along with SimpleScreenRecorder.  If not, see <http://www.gnu.org/licenses/>.
 #include "AudioEncoder.h"
 #include "Synchronizer.h"
 #include "X11Input.h"
+#if SSR_USE_WAYLAND
+#include "WlrInput.h"
+#endif
 #include "GLInjectInput.h"
 #if SSR_USE_ALSA
 #include "ALSAInput.h"
@@ -714,9 +717,16 @@ void PageRecord::StartOutput() {
 			// set the file name
 			m_output_settings.file = GetNewSegmentFile(m_file_base, m_add_timestamp);
 
-			// for X11 recording, update the video size (if possible)
+			// for X11/Wayland recording, update the video size (if possible)
+#if SSR_USE_WAYLAND
+			if(m_wayland_input != NULL && m_wayland_available)
+				m_wayland_input->GetCurrentSize(&m_video_in_width, &m_video_in_height);
+			else if(m_x11_input != NULL)
+				m_x11_input->GetCurrentSize(&m_video_in_width, &m_video_in_height);
+#else
 			if(m_x11_input != NULL)
 				m_x11_input->GetCurrentSize(&m_video_in_width, &m_video_in_height);
+#endif
 
 #if SSR_USE_OPENGL_RECORDING
 			// for OpenGL recording, detect the video size
@@ -825,7 +835,11 @@ void PageRecord::StartInput() {
 	if(m_input_started)
 		return;
 
+#if SSR_USE_WAYLAND
+	assert(m_wayland_input == NULL || m_x11_input == NULL);
+#else
 	assert(m_x11_input == NULL);
+#endif
 #if SSR_USE_ALSA
 	assert(m_alsa_input == NULL);
 #endif
@@ -849,8 +863,21 @@ void PageRecord::StartInput() {
 #else
 		{
 #endif
+#if SSR_USE_WAYLAND
+            try {
+                Logger::LogInfo("[PageRecord::StartInput] " + tr("Using Wayland"));
+                m_wayland_input.reset(new WlrInput(m_video_x, m_video_y, m_video_in_width, m_video_in_height, m_video_record_cursor,
+                                               m_video_area == PageInput::VIDEO_AREA_CURSOR, m_video_area_follow_fullscreen));
+                m_wayland_available = true;
+            } catch (...) {
+                m_wayland_available = false;
+                m_x11_input.reset(new X11Input(m_video_x, m_video_y, m_video_in_width, m_video_in_height, m_video_record_cursor,
+                                               m_video_area == PageInput::VIDEO_AREA_CURSOR, m_video_area_follow_fullscreen));
+            }
+#else
 			m_x11_input.reset(new X11Input(m_video_x, m_video_y, m_video_in_width, m_video_in_height, m_video_record_cursor,
 										   m_video_area == PageInput::VIDEO_AREA_CURSOR, m_video_area_follow_fullscreen));
+#endif
 		}
 
 		// start the audio input
@@ -872,6 +899,11 @@ void PageRecord::StartInput() {
 
 	} catch(...) {
 		Logger::LogError("[PageRecord::StartInput] " + tr("Error: Something went wrong during initialization."));
+#if SSR_USE_WAYLAND
+        if (m_wayland_available) {
+            m_wayland_input.reset();
+        }
+#endif
 		m_x11_input.reset();
 #if SSR_USE_OPENGL_RECORDING
 		if(m_gl_inject_input != NULL)
@@ -897,7 +929,15 @@ void PageRecord::StopInput() {
 
 	Logger::LogInfo("[PageRecord::StopInput] " + tr("Stopping input ..."));
 
+#if SSR_USE_WAYLAND
+        if (m_wayland_available) {
+            m_wayland_input.reset();
+        } else {
+            m_x11_input.reset();
+        }
+#else
 	m_x11_input.reset();
+#endif
 #if SSR_USE_OPENGL_RECORDING
 	if(m_gl_inject_input != NULL)
 		m_gl_inject_input->SetCapturing(false);
@@ -965,7 +1005,15 @@ void PageRecord::UpdateInput() {
 #else
 	{
 #endif
+#if SSR_USE_WAYLAND
+        if (m_wayland_available) {
+            video_source = m_wayland_input.get();
+        } else {
+            video_source = m_x11_input.get();
+        }
+#else
 		video_source = m_x11_input.get();
+#endif
 	}
 	if(m_audio_enabled) {
 #if SSR_USE_ALSA
@@ -1152,8 +1200,15 @@ void PageRecord::OnUpdateInformation() {
 		if(m_gl_inject_input != NULL)
 			fps_in = m_gl_inject_input->GetFPS();
 #endif
-		if(m_x11_input != NULL)
+#if SSR_USE_WAYLAND
+		if(m_wayland_available && m_wayland_input != NULL)
+			fps_in = m_wayland_input->GetFPS();
+        else if(m_x11_input != NULL)
 			fps_in = m_x11_input->GetFPS();
+#else
+        if(m_x11_input != NULL)
+			fps_in = m_x11_input->GetFPS();
+#endif
 
 		if(m_output_manager != NULL) {
 			total_time = (m_output_manager->GetSynchronizer() == NULL)? 0 : m_output_manager->GetSynchronizer()->GetTotalTime();
@@ -1168,9 +1223,15 @@ void PageRecord::OnUpdateInformation() {
 		else
 			file_name = "(" + m_file_protocol + ")";
 
-		// for X11 recording, update the video size
-		if(m_x11_input != NULL)
-			m_x11_input->GetCurrentSize(&m_video_in_width, &m_video_in_height);
+#if SSR_USE_WAYLAND
+			if(m_wayland_input != NULL && m_wayland_available)
+				m_wayland_input->GetCurrentSize(&m_video_in_width, &m_video_in_height);
+			else if(m_x11_input != NULL)
+				m_x11_input->GetCurrentSize(&m_video_in_width, &m_video_in_height);
+#else
+			if(m_x11_input != NULL)
+				m_x11_input->GetCurrentSize(&m_video_in_width, &m_video_in_height);
+#endif
 
 #if SSR_USE_OPENGL_RECORDING
 		// for OpenGL recording, update the video size

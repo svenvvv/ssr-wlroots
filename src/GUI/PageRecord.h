@@ -33,6 +33,9 @@ class Muxer;
 class VideoEncoder;
 class AudioEncoder;
 class Synchronizer;
+#if SSR_USE_WAYLAND
+class WlrInput;
+#endif
 class X11Input;
 #if SSR_USE_OPENGL_RECORDING
 class GLInjectLauncher;
@@ -89,6 +92,10 @@ private:
 	QString m_file_protocol;
 	bool m_separate_files, m_add_timestamp;
 
+#if SSR_USE_WAYLAND
+	std::unique_ptr<WlrInput> m_wayland_input;
+    bool m_wayland_available;
+#endif
 	std::unique_ptr<X11Input> m_x11_input;
 #if SSR_USE_OPENGL_RECORDING
 	std::unique_ptr<GLInjectInput> m_gl_inject_input;

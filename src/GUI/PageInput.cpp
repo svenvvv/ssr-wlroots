@@ -262,6 +262,15 @@ PageInput::PageInput(MainWindow* main_window)
 			m_pushbutton_video_select_window->setToolTip(tr("Use the mouse to select a window to record.\n"
 															"Hint: If you click the border of a window, the entire window will be recorded (including the borders). Otherwise only\n"
 															"the client area of the window will be recorded."));
+#if SSR_USE_WAYLAND
+            m_checkbox_follow_fullscreen->setEnabled(false);
+            m_checkbox_follow_fullscreen->setToolTip(tr("Not supported under Wayland environments."));
+            m_pushbutton_video_select_rectangle->setEnabled(false);
+            m_pushbutton_video_select_rectangle->setToolTip(tr("Not supported under Wayland environments (yet).")); // TODO!
+            m_pushbutton_video_select_window->setEnabled(false);
+            m_pushbutton_video_select_window->setToolTip(tr("Not supported under Wayland environments."));
+
+#endif
 #if SSR_USE_OPENGL_RECORDING
 			m_pushbutton_video_opengl_settings = new QPushButton(tr("OpenGL settings..."), groupbox_video);
 			m_pushbutton_video_opengl_settings->setToolTip(tr("Change the settings for OpenGL recording."));
@@ -306,6 +315,10 @@ PageInput::PageInput(MainWindow* main_window)
 			m_spinbox_video_scaled_h->setRange(0, 10000);
 			m_spinbox_video_scaled_h->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 			m_checkbox_record_cursor = new QCheckBox(tr("Record cursor"), groupbox_video);
+#if SSR_USE_WAYLAND
+            m_checkbox_record_cursor->setEnabled(false);
+            m_checkbox_record_cursor->setToolTip(tr("Cursor is always recorded on Wayland."));
+#endif
 
 			connect(m_buttongroup_video_area, SIGNAL(buttonClicked(int)), this, SLOT(OnUpdateVideoAreaFields()));
 			connect(m_combobox_screens, SIGNAL(activated(int)), this, SLOT(OnUpdateVideoAreaFields()));
@@ -989,9 +1002,11 @@ void PageInput::OnUpdateVideoAreaFields() {
 		}
 		case VIDEO_AREA_FIXED: {
 			m_combobox_screens->setEnabled(false);
+#if !SSR_USE_WAYLAND
 			m_checkbox_follow_fullscreen->setEnabled(false);
 			m_pushbutton_video_select_rectangle->setEnabled(true);
 			m_pushbutton_video_select_window->setEnabled(true);
+#endif
 #if SSR_USE_OPENGL_RECORDING
 			m_pushbutton_video_opengl_settings->setEnabled(false);
 #endif
@@ -1017,8 +1032,10 @@ void PageInput::OnUpdateVideoAreaFields() {
 				SetVideoW(rect.width());
 				SetVideoH(rect.height());
 			} else {
+#if !SSR_USE_WAYLAND
 				m_pushbutton_video_select_rectangle->setEnabled(true);
 				m_pushbutton_video_select_window->setEnabled(true);
+#endif
 				GroupEnabled({m_label_video_x, m_spinbox_video_x, m_label_video_y, m_spinbox_video_y}, false);
 				GroupEnabled({m_label_video_w, m_spinbox_video_w, m_label_video_h, m_spinbox_video_h}, true);
 				SetVideoX(0);

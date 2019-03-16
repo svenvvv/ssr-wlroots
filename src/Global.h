@@ -267,6 +267,14 @@ public:
 		return "X11Exception";
 	}
 };
+#if SSR_USE_WAYLAND
+class WlrException : public std::exception {
+public:
+	inline virtual const char* what() const throw() override {
+		return "WlrException";
+	}
+};
+#endif
 class GLInjectException : public std::exception {
 public:
 	inline virtual const char* what() const throw() override {

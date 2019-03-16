@@ -38,6 +38,8 @@ set(sources
 	AV/Input/SSRVideoStreamWatcher.h
 	AV/Input/X11Input.cpp
 	AV/Input/X11Input.h
+    $<$<BOOL:${WITH_WAYLAND}>:AV/Input/WlrInput.cpp>
+    $<$<BOOL:${WITH_WAYLAND}>:AV/Input/WlrInput.h>
 	AV/Output/AudioEncoder.cpp
 	AV/Output/AudioEncoder.h
 	AV/Output/BaseEncoder.cpp
@@ -199,6 +201,8 @@ target_link_libraries(simplescreenrecorder PRIVATE
 	$<$<BOOL:${WITH_ALSA}>:${ALSA_LIBRARIES}>
 	$<$<BOOL:${WITH_PULSEAUDIO}>:${PULSEAUDIO_LIBRARIES}>
 	$<$<BOOL:${WITH_JACK}>:${JACK_LIBRARIES}>
+    $<$<BOOL:${WITH_WAYLAND}>:wayland-proto>
+    $<$<BOOL:${WITH_WAYLAND}>:wayland-client>
 )
 
 target_compile_definitions(simplescreenrecorder PRIVATE
@@ -208,6 +212,7 @@ target_compile_definitions(simplescreenrecorder PRIVATE
 	-DSSR_USE_ALSA=$<BOOL:${WITH_ALSA}>
 	-DSSR_USE_PULSEAUDIO=$<BOOL:${WITH_PULSEAUDIO}>
 	-DSSR_USE_JACK=$<BOOL:${WITH_JACK}>
+    -DSSR_USE_WAYLAND=$<BOOL:${WITH_WAYLAND}>
 	-DSSR_SYSTEM_DIR="${CMAKE_INSTALL_FULL_DATADIR}/simplescreenrecorder"
 	-DSSR_VERSION="${PROJECT_VERSION}"
 )
