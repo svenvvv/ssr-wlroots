@@ -125,6 +125,8 @@ You will need the following packages to compile SimpleScreenRecorder:
 - libXfixes (32 and 64 bit)
 - libXext
 - libXi
+- libwayland-client (optional, disable with -DWITH_WAYLAND=FALSE)
+- wayland-protocols (optional, disable with -DWITH_WAYLAND=FALSE)
 
 If you have a 64-bit system and you want to compile the 32-bit GLInject library, you have to install some 32-bit libraries as well. Otherwise the regular packages are sufficient.
 
@@ -132,7 +134,7 @@ If you have a 64-bit system and you want to compile the 32-bit GLInject library,
 
     sudo apt-get install build-essential pkg-config qt4-qmake libqt4-dev desktop-file-utils \
     libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libasound2-dev libpulse-dev libjack-jackd2-dev \
-    libgl1-mesa-dev libglu1-mesa-dev libx11-dev libxfixes-dev libxext-dev libxi-dev
+    libgl1-mesa-dev libglu1-mesa-dev libx11-dev libxfixes-dev libxext-dev libxi-dev wayland-protocols libwayland-dev
 
 Extra dependencies for 32-bit GLInject on 64-bit systems:
 
@@ -151,7 +153,8 @@ Next you should apply the workarounds described in the 'compiling' section.
 This list is incomplete but usually sufficient:
 
     sudo zypper install gcc libffmpeg-devel libqt4-devel libpulse-devel libjack-devel \
-    glu-devel libX11-devel libXext-devel libXfixes-devel libXi-devel
+    glu-devel libX11-devel libXext-devel libXfixes-devel libXi-devel \
+    wayland-protocols wayland-devel
 
 Some packages (e.g. ffmpeg) are not in the official repository, but can be installed from the [Packman repository](http://packman.links2linux.org/). You can add the Packman repository with this command:
 
@@ -164,7 +167,8 @@ Extra dependencies for 32-bit GLInject on 64-bit systems:
 ### Fedora
 
     sudo yum install qt4 qt4-devel ffmpeg-devel alsa-lib-devel pulseaudio-libs-devel jack-audio-connection-kit-devel \
-    make gcc gcc-c++ mesa-libGL-devel mesa-libGLU-devel libX11-devel libXext-devel libXfixes-devel
+    make gcc gcc-c++ mesa-libGL-devel mesa-libGLU-devel libX11-devel libXext-devel libXfixes-devel \
+    wayland-protocols-devel wayland-devel
 
 Some packages (e.g. ffmpeg) are not in the official repository, but can be installed from the [RPM Fusion](http://rpmfusion.org/) repository.  You can add the RPM Fusion repository with this command:
 
