@@ -354,7 +354,7 @@ void WlrInput::InputThread() {
             }
 
             auto ts = timespec_to_microsec(buf.presented);
-			PushVideoFrame(m_width, m_height, data, buf.stride, GetInputFormat(buf), ts);
+			PushVideoFrame(m_width, m_height, data, buf.stride, GetInputFormat(buf), SWS_CS_DEFAULT, ts);
             last_timestamp = ts;
 
             zwlr_screencopy_frame_v1_destroy(frame);
