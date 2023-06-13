@@ -69,7 +69,7 @@ AVSampleFormat AudioEncoder::GetSampleFormat() {
 }
 
 unsigned int AudioEncoder::GetChannels() {
-	return GetCodecContext()->channels;
+	return GetCodecContext()->ch_layout.nb_channels;
 }
 
 unsigned int AudioEncoder::GetSampleRate() {
@@ -107,8 +107,8 @@ void AudioEncoder::PrepareStream(AVStream* stream, AVCodecContext* codec_context
 	}
 
 	codec_context->bit_rate = bit_rate;
-	codec_context->channels = channels;
-	codec_context->channel_layout = (channels == 1)? AV_CH_LAYOUT_MONO : AV_CH_LAYOUT_STEREO;
+	codec_context->ch_layout.nb_channels = channels;
+	codec_context->ch_layout.u.mask = (channels == 1)? AV_CH_LAYOUT_MONO : AV_CH_LAYOUT_STEREO;
 	codec_context->sample_rate = sample_rate;
 	codec_context->time_base.num = 1;
 	codec_context->time_base.den = sample_rate;
@@ -158,7 +158,7 @@ bool AudioEncoder::EncodeFrame(AVFrameWrapper* frame) {
 		assert((unsigned int) frame->GetFrame()->nb_samples == GetFrameSize());
 #endif
 #if SSR_USE_AVFRAME_CHANNELS
-		assert(frame->GetFrame()->channels == GetCodecContext()->channels);
+		assert(frame->GetFrame()->ch_layout.nb_channels == GetCodecContext()->ch_layout.nb_channels);
 #endif
 #if SSR_USE_AVFRAME_SAMPLE_RATE
 		assert(frame->GetFrame()->sample_rate == GetCodecContext()->sample_rate);
