@@ -26,6 +26,13 @@ along with SimpleScreenRecorder.  If not, see <http://www.gnu.org/licenses/>.
 #include "Icons.h"
 #include "MainWindow.h"
 
+#include <slurp/slurp.h>
+
+#define BG_COLOR 0xFFFFFF40
+#define BORDER_COLOR 0x000000FF
+#define SELECTION_COLOR 0x00000000
+#define FONT_FAMILY "sans-serif"
+
 ENUMSTRINGS(PageInput::enum_video_area) = {
 	{PageInput::VIDEO_AREA_SCREEN, "screen"},
 	{PageInput::VIDEO_AREA_FIXED, "fixed"},
@@ -304,8 +311,6 @@ PageInput::PageInput(MainWindow* main_window)
 #if SSR_USE_WAYLAND
             m_checkbox_follow_fullscreen->setEnabled(false);
             m_checkbox_follow_fullscreen->setToolTip(tr("Not supported under Wayland environments."));
-            m_pushbutton_video_select_rectangle->setEnabled(false);
-            m_pushbutton_video_select_rectangle->setToolTip(tr("Not supported under Wayland environments (yet).")); // TODO!
             m_pushbutton_video_select_window->setEnabled(false);
             m_pushbutton_video_select_window->setToolTip(tr("Not supported under Wayland environments."));
 
@@ -922,6 +927,33 @@ void PageInput::keyPressEvent(QKeyEvent* event) {
 }
 
 void PageInput::StartGrabbing() {
+#if SSR_USE_WAYLAND
+	struct slurp_state state = {
+		.colors = {
+			.background = BG_COLOR,
+			.border = BORDER_COLOR,
+			.selection = SELECTION_COLOR,
+			.choice = BG_COLOR,
+		},
+		.font_family = FONT_FAMILY,
+		.border_weight = 2,
+		.display_dimensions = true,
+		.restrict_selection = false,
+		.fixed_aspect_ratio = false,
+		.aspect_ratio = 0,
+		.cursor_size = 24,
+		.output_boxes = false,
+	};
+
+	slurp_state_init(&state);
+	if (slurp_select(&state) == 0) {
+		SetVideoX(state.result.x);
+		SetVideoY(state.result.y);
+		SetVideoW(state.result.width);
+		SetVideoH(state.result.height);
+	}
+	slurp_destroy(&state);
+#else
 	// Grab the mouse and keyboard, and hide the window. Grabbing the keyboard isn't required, but if we don't grab it the user could still alt-tab
 	// to other windows, switch workspaces, ... which would be very confusing. Grabbing doesn't work if the window is actually hidden or minimized,
 	// so instead I just lower the window below all other windows (this is probably less confusing too). Grabbing stops as soon as the escape key
@@ -935,6 +967,7 @@ void PageInput::StartGrabbing() {
 	grabMouse(Qt::CrossCursor);
 	grabKeyboard();
 	setMouseTracking(true);
+#endif
 }
 
 void PageInput::StopGrabbing() {
@@ -1059,9 +1092,9 @@ void PageInput::OnUpdateVideoAreaFields() {
 		}
 		case VIDEO_AREA_FIXED: {
 			m_combobox_screens->setEnabled(false);
+			m_pushbutton_video_select_rectangle->setEnabled(true);
 #if !SSR_USE_WAYLAND
 			m_checkbox_follow_fullscreen->setEnabled(false);
-			m_pushbutton_video_select_rectangle->setEnabled(true);
 			m_pushbutton_video_select_window->setEnabled(true);
 #endif
 #if SSR_USE_OPENGL_RECORDING

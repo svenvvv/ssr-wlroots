@@ -28,6 +28,10 @@ else()
 	find_package(Qt4 4.8 COMPONENTS QtGui REQUIRED)
 endif()
 
+if (WITH_WAYLAND)
+	find_package(PkgConfig REQUIRED)
+endif()
+
 set(sources
 	AV/Input/ALSAInput.cpp
 	AV/Input/ALSAInput.h
@@ -179,6 +183,10 @@ else()
 	)
 endif()
 
+if(WITH_WAYLAND)
+	pkg_check_modules(SLURP REQUIRED slurp)
+endif()
+
 set_property(SOURCE ${res_output} PROPERTY SKIP_AUTOMOC ON)
 
 add_executable(simplescreenrecorder
@@ -226,6 +234,7 @@ target_link_libraries(simplescreenrecorder PRIVATE
 	$<$<BOOL:${WITH_JACK}>:${JACK_LIBRARIES}>
     $<$<BOOL:${WITH_WAYLAND}>:wayland-proto>
     $<$<BOOL:${WITH_WAYLAND}>:wayland-client>
+    $<$<BOOL:${WITH_WAYLAND}>:${SLURP_LIBRARIES}>
 )
 
 target_compile_definitions(simplescreenrecorder PRIVATE
