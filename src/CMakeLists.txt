@@ -185,6 +185,7 @@ endif()
 
 if(WITH_WAYLAND)
 	pkg_check_modules(SLURP REQUIRED slurp)
+	pkg_check_modules(WAYLAND_CLIENT REQUIRED wayland-client)
 endif()
 
 set_property(SOURCE ${res_output} PROPERTY SKIP_AUTOMOC ON)
@@ -199,6 +200,8 @@ target_include_directories(simplescreenrecorder PRIVATE
 	${AVCODEC_INCLUDE_DIRS}
 	${AVUTIL_INCLUDE_DIRS}
 	${SWSCALE_INCLUDE_DIRS}
+	${WAYLAND_CLIENT_INCLUDE_DIRS}
+	${SLURP_INCLUDE_DIRS}
 	${X11_X11_INCLUDE_PATH}
 	${X11_Xext_INCLUDE_PATH}
 	${X11_Xfixes_INCLUDE_PATH}
@@ -233,7 +236,7 @@ target_link_libraries(simplescreenrecorder PRIVATE
 	$<$<BOOL:${WITH_PULSEAUDIO}>:${PULSEAUDIO_LIBRARIES}>
 	$<$<BOOL:${WITH_JACK}>:${JACK_LIBRARIES}>
     $<$<BOOL:${WITH_WAYLAND}>:wayland-proto>
-    $<$<BOOL:${WITH_WAYLAND}>:wayland-client>
+    $<$<BOOL:${WITH_WAYLAND}>:${WAYLAND_CLIENT_LIBRARIES}>
     $<$<BOOL:${WITH_WAYLAND}>:${SLURP_LIBRARIES}>
 )
 
