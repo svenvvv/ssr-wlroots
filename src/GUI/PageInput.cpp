@@ -1250,6 +1250,7 @@ void PageInput::OnUpdatePulseAudioSources() {
 
 void PageInput::OnIdentifyScreens() {
 	OnStopIdentifyScreens();
+#ifndef SSR_USE_WAYLAND
 	std::vector<QRect> screen_geometries = GetScreenGeometries();
 	for(size_t i = 0; i < screen_geometries.size(); ++i) {
 		QRect &rect = screen_geometries[i];
@@ -1258,6 +1259,7 @@ void PageInput::OnIdentifyScreens() {
 		label->show();
 		m_screen_labels.push_back(label);
 	}
+#endif
 }
 
 void PageInput::OnStopIdentifyScreens() {
